@@ -1,0 +1,611 @@
+<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Wnavigation.aspx.cs" Inherits="WNavigation.Wnavigation" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="bootstrap.min.js"></script>
+    <link href="bootstrap.min.css" rel="stylesheet" />
+    <script src="jquery-3.6.0.js"></script>
+    <script src="jquery-ui.js"></script>
+    <link href="jquery-ui.css" rel="stylesheet" />
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $('#textid').hide();
+            getdataofnav();
+            SearchText();
+            
+           
+            $('#btnfirst').click(function () {
+                getdataofnav()
+            });
+            $('#btnnext').click(function () {
+                nextpage();
+            })
+            $('#btnpre').click(function () {
+                Previespage();
+            });
+            $('#btnlast').click(function () {
+                Lastpage();
+            })
+            $('#textid').hide();
+            $('#btnupdate').hide();
+           
+            $('#btnsave').click(function () {
+                storedata();
+            });
+            $('#btnupdate').click(function () {
+              //  $(this).val('save');
+                $('#textid').hide();
+                Updaterecord();
+            });
+            $(function () {
+                searchPage("");
+
+                $('input[name=txtSearch]').on('keyup', function () {
+                    var searchText = $(this).val();
+                    
+                    searchPage(searchText);
+                });
+            });
+          function searchPage(text) {
+                $.ajax({
+                    url: 'WebService.asmx/searchpagedetails',
+                    method: 'post',
+                    dataType: "json",
+                    data: "{searchText: '" + text + "'}",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        var datacollection = $('#tbldisplay tbody');
+                        datacollection.empty();
+                        var totalrecord = data.d.length;
+                        var pagesize = $('#drpPagesize').val()
+                        var totalpage = Math.ceil(totalrecord / pagesize);
+                        //   alert(totalrecord + " " + pagesize + " " + totalpage);
+                        $('#spnTotalPageSize').text(totalpage);
+                for (var i = 0; i < pagesize; i++) {
+                                $('#tbldisplay tbody').append('<tr><td>' + "<label>" + data.d[i].ID + "</label>" + '</td><td >' + "<label>" + data.d[i].firstname + "</label>" + '</td><td>' + "<label>" + data.d[i].lastname + "</label>" + '</td><td>' + "<label id=''>" + data.d[i].qualification + "</label>" + '</td><td>'
+                                  + "<label>" + data.d[i].gender + "</label>" + '</td><td>' + "<label>" + data.d[i].work + "</label>" + '</td><td>' + "<label>" + data.d[i].email + "</label>" + "</td><td><input itag='Edit' class='btn-success' type= 'button' value ='EDIT' onclick='return Editrecords(this);' /></td></td><td><input itag='Delete' class='btn-success' type='button' value ='Delete' onclick='return DeleteCurrentRecord(this);'</td></tr>");
+                        }
+                        $('#txtcurrentpage').val(1);
+                    },
+                    error: function () {
+                        alert("mohan");
+                    }
+                });
+            }
+
+            function storedata() { 
+                var store = {};
+                store.firstname = $('#txtfirstname').val();
+                store.lastname = $('#txtlastname').val();
+                store.qualification = $('#txtqualificaion').val();
+                store.gender = $('#txtgender').val();
+                store.work = $('#txtwork').val();
+                store.email = $('#txtemailid').val();
+
+                $.ajax({
+                    url: 'WebService.asmx/Getnavigation',
+                    method: 'post',
+                    contentType: 'application/json;charset=utf-8',
+                    data: '{emp:' + JSON.stringify(store) + '}',
+                    success: function () {
+                        alert("successfully inserted");
+                        cleartext();
+                        getdataofnav();
+                        
+                     },
+                    error: function (err) {
+                        Error(err);
+                    }
+                });
+                function cleartext() {
+                    $('.txtclear').val('');                    
+                }
+            }
+            function getdataofnav() {
+                $.ajax({
+                    url: 'WebService.asmx/Getpersonsdetailform',
+                    method: 'post',
+                    dataType: "json",
+                    success: function (data) {
+                        var datacollection = $('#tbldisplay tbody');
+                        datacollection.empty();
+                        
+                        var totalrecord = data.length;
+                        var pagesize = $('#drpPagesize').val()
+                        var totalpage = Math.ceil(totalrecord / pagesize);
+                        //   alert(totalrecord + " " + pagesize + " " + totalpage);
+                       $('#spnTotalPageSize').text(totalpage);
+                      
+                      for (var i = 0; i < pagesize; i++) {
+                          
+                          $('#tbldisplay tbody').append('<tr><td>' + "<label>" + data[i].ID + "</label>" + '</td><td >' + "<label>" + data[i].firstname + "</label>" + '</td><td>' + "<label>" + data[i].lastname + "</label>" + '</td><td>' + "<label id=''>" + data[i].qualification + "</label>" + '</td><td>'
+                            + "<label>" + data[i].gender + "</label>" + '</td><td>' + "<label>" + data[i].work + "</label>" + '</td><td>' + "<label>" + data[i].email + "</label>" + "</td><td><input itag='Edit' class='btn-success' type= 'button' value ='EDIT' onclick='return Editrecords(this);' /></td></td><td><input itag='Delete' type='button' class='btn-success' value ='Delete' onclick='return DeleteCurrentRecord(this);'</td></tr>");
+                      }
+                      $('#txtcurrentpage').val(1);
+                      //  deletdata();
+                        //$(data).each(function (index, emp) {
+                        //    datacollection.append('<tr><td>'+"<label>"+  emp.ID + "</label>"+ '</td><td >' +"<label>"+ emp.firstname +"</label>"+ '</td><td>' +"<label>"+ emp.lastname +"</label>" + '</td><td>'+"<label id=''>" + emp.qualification +"</label>"+ '</td><td>'
+                         //  + "<label>" + emp.gender + "</label>" + '</td><td>' + "<label>" + emp.work + "</label>" +'</td><td>'+"<label>"+ emp.email +"</label>"+ "</td><td><input itag='Edit' type= 'button' value ='EDIT' onclick='return Editrecords(this);' /></td></td><td><input itag='Delete' type='button' value ='Delete' onclick='return DeleteCurrentRecord(this);'</td></tr>");
+
+                        //});
+                    },
+                    error: function () {
+                       alert("mo1");
+                    }
+                });            
+            }
+
+            function nextpage() {
+                $.ajax({
+                    url: 'WebService.asmx/Getpersonsdetailform',
+                    method: 'post',
+                    dataType: "json",
+                    success: function (data) {
+                        var datacollection = $('#tbldisplay tbody');
+                        datacollection.empty();
+                        var totalrecord = data.length;
+                        var pagesize = $('#drpPagesize').val()
+                        var currentpage = $('#txtcurrentpage').val();
+                        var totalpage = Math.ceil(totalrecord / pagesize);
+                        currentpage++;
+                        if (currentpage <= totalpage) {
+                            var EndIndex = parseInt(pagesize) * parseInt(currentpage);
+                            var StartIndex = parseInt(EndIndex) - parseInt(pagesize);
+                            $('#txtcurrentpage').val(currentpage);
+
+                            if (EndIndex > totalrecord)
+                                EndIndex = totalrecord;
+
+                            for (var i = StartIndex; i < EndIndex; i++) {
+                                $('#tbldisplay tbody').append('<tr><td>' + "<label>" + data[i].ID + "</label>" + '</td><td >' + "<label>" + data[i].firstname + "</label>" + '</td><td>' + "<label>" + data[i].lastname + "</label>" + '</td><td>' + "<label id=''>" + data[i].qualification + "</label>" + '</td><td>'
+                               + "<label>" + data[i].gender + "</label>" + '</td><td>' + "<label>" + data[i].work + "</label>" + '</td><td>' + "<label>" + data[i].email + "</label>" + "</td><td><input itag='Edit' class='btn-success' type= 'button' value ='EDIT' onclick='return Editrecords(this);' /></td></td><td><input itag='Delete' class='btn-success' type='button' value ='Delete' onclick='return DeleteCurrentRecord(this);'</td></tr>");
+                            }
+                        }
+                    },
+                    error: function () {
+                        alert("fail");
+                    }
+                });
+            }
+            function Previespage() {
+                $.ajax({
+                    url: 'WebService.asmx/Getpersonsdetailform',
+                    method: 'post',
+                    dataType: "json",
+                    success: function (data) {
+                        var datacollection = $('#tbldisplay tbody');
+                        datacollection.empty();
+                        var totalrecord = data.length;
+                        var pagesize = $('#drpPagesize').val()
+                        var currentpage = $('#txtcurrentpage').val();
+                        var totalpage = Math.ceil(totalrecord / pagesize);
+                        currentpage--;
+                        if (currentpage >= 1) {
+                            var EndIndex = parseInt(pagesize) * parseInt(currentpage);
+                            var StartIndex = parseInt(EndIndex) - parseInt(pagesize);
+                            $('#txtcurrentpage').val(currentpage);
+
+                            if (EndIndex > totalrecord)
+                                EndIndex = totalrecord;
+
+                            for (var i = StartIndex; i < EndIndex; i++) {
+                                $('#tbldisplay tbody').append('<tr><td>' + "<label>" + data[i].ID + "</label>" + '</td><td >' + "<label>" + data[i].firstname + "</label>" + '</td><td>' + "<label>" + data[i].lastname + "</label>" + '</td><td>' + "<label id=''>" + data[i].qualification + "</label>" + '</td><td>'
+                               + "<label>" + data[i].gender + "</label>" + '</td><td>' + "<label>" + data[i].work + "</label>" + '</td><td>' + "<label>" + data[i].email + "</label>" + "</td><td><input itag='Edit' class='btn-success' type= 'button' value ='EDIT' onclick='return Editrecords(this);' /></td></td><td><input itag='Delete' type='button' class='btn-success' value ='Delete' onclick='return DeleteCurrentRecord(this);'</td></tr>");
+                            }
+                        }
+                    },
+                    error: function () {
+                        alert("fail");
+                    }
+                });
+            }
+           function Lastpage() {
+                $.ajax({
+                    url: 'WebService.asmx/Getpersonsdetailform',
+                    method: 'post',
+                    dataType: "json",
+                    success: function (data) {
+                        var datacollection = $('#tbldisplay tbody');
+                        datacollection.empty();
+                        var totalrecord = data.length;
+                        var pagesize = $('#drpPagesize').val()
+                        var currentpage = $('#txtcurrentpage').val();
+                        var totalpage = Math.ceil(totalrecord / pagesize);
+                        var EndIndex = parseInt(pagesize) * parseInt(currentpage);
+                        var StartIndex = parseInt(EndIndex) - parseInt(pagesize);
+                        $('#txtcurrentpage').val(totalpage);
+                            if (EndIndex > totalrecord)
+                                EndIndex = totalrecord
+                            for (var i = StartIndex; i < EndIndex; i++) {
+                                $('#tbldisplay tbody').append('<tr><td>' + "<label>" + data[i].ID + "</label>" + '</td><td >' + "<label>" + data[i].firstname + "</label>" + '</td><td>' + "<label>" + data[i].lastname + "</label>" + '</td><td>' + "<label id=''>" + data[i].qualification + "</label>" + '</td><td>'
+                               + "<label>" + data[i].gender + "</label>" + '</td><td>' + "<label>" + data[i].work + "</label>" + '</td><td>' + "<label>" + data[i].email + "</label>" + "</td><td><input itag='Edit'class='btn-success' type= 'button' value ='EDIT' onclick='return Editrecords(this);' /></td></td><td><input itag='Delete' type='button' class='btn-success' value ='Delete' onclick='return DeleteCurrentRecord(this);'</td></tr>");
+                            }
+                    },
+                    error: function () {
+                        alert("fail");
+                    }
+                });
+            }
+           function Updaterecord() {
+                var updaterec = {};
+                updaterec.id = $('#textid').val();
+                updaterec.firstname = $('#txtfirstname').val();
+                updaterec.lastname = $('#txtlastname').val();
+                updaterec.qualification = $('#txtqualificaion').val();
+                updaterec.gender = $('#txtgender').val();
+                updaterec.work = $('#txtwork').val();
+                updaterec.email = $('#txtemailid').val();
+                $.ajax({
+                    url: 'Wnavigation.aspx/Wnavgarionupdate',
+                    method: 'post',
+                    contentType: 'application/json;charset=utf-8',
+                    data: '{terns:' + JSON.stringify(updaterec) + '}',
+                    success: function () {
+                 alert("successfully Updated....");
+                        cleartext();
+                        getdataofnav();
+                    },
+                    error: function (err) {
+                        Error(err);
+                    }
+               });
+                function cleartext() {
+                    $('.txtclear').val('');
+                }
+            }
+        });
+        function DeleteCurrentRecord(control) {
+          var checkstr = confirm('Are you sure you want to delete this?');
+          if (checkstr == true) {
+             var Info = ($(control).closest("tr").find("label").html());
+                $.ajax({
+                    url: 'Wnavigation.aspx/Jsdeletepersons',
+                    type: 'POST',
+                    contentType: 'application/json;charset=utf-8',
+                    data: Info,
+                    dataType: 'json',
+                    data: '{ID:' + JSON.stringify(Info) + '}',
+                    success: function (result) {
+                        alert("successfully deleted recored");
+                        if (result = "success") {
+                            $(control).closest("tr").remove();
+                        }
+                    },
+                    error: function () {
+
+                        Error("error");
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+       }
+        function Editrecords3(control) {
+            var ID = $(control).closest('tr').find("label").html();
+            $('#CustomerDetails').load("Handler.ashx?CustomerID=" + $(ID).val());
+        }
+        function Editrecords3(control) {
+            $('#textid').show();
+            ids = ($(control).closest("tr").find("td").find("label").html());
+            $.ajax({
+                url: 'WebService.asmx/Geteditmode',
+                method: 'post',
+              //  contentType: 'application/json;charset=utf-8',
+                data: {empids:ids},
+                dataType:'xml',
+                success: function (data) {
+                    var jqueryxml = $(data);
+                    //jqueryxml.find("firstname").text();--refrances
+                    $('#textid').val(jqueryxml.find('ID').text());
+                    $('#txtfirstname').val(jqueryxml.find('firstname').text());
+                    $('#txtlastname').val(jqueryxml.find('lastname').text());
+                    $('#txtqualificaion').val(jqueryxml.find('qualification').text());
+                    $('#txtgender').val(jqueryxml.find('gender').text());
+                    $('#txtwork').val(jqueryxml.find('work').text());
+                    $('#txtemailid').val(jqueryxml.find('email').text());
+                    $('#btnsave').hide();
+                    $('#btnupdate').show();
+                },
+                error: function (err) {
+                    Error(err);
+                }
+            })
+        }
+            function Editrecords4(control) {
+                //  ($(control).closest('tr').find("input[type='Edit']").val());---Referance
+                if ($(control).val() == "EDIT") {
+                    var i = 0;
+                    $(control).closest("tr").find("td").each(function (control) {
+                        if (i != 0) {
+                            if ($(this).find("label").length > 0) {
+                                var value = $(this).find("label").html();
+
+                                $(this).find("label").hide();
+                                $(this).append("<input type= 'text' value='" + value + "'/>");
+                            }
+                            $(this).find("input[itag='Edit']").val("Update");
+                        }
+                        else
+                            i++;
+                    });
+                }
+                else {
+                   var id = "", firstname = "", lastname = "", qualification = "", gender = "", work = "", email = "";
+                    id = ($(control).closest("tr").find("td:nth-child(1)").find("label").html());
+                    firstname = $(control).closest("tr").find("td:nth-child(2)").find("input").val();
+                    lastname = $(control).closest("tr").find("td:nth-child(3)").find("input").val();
+                    qualification = $(control).closest("tr").find("td:nth-child(4)").find("input").val();
+                    gender = $(control).closest("tr").find("td:nth-child(5)").find("input").val();
+                    work = ($(control).closest("tr").find("td:nth-child(6)").find("input").val());
+                    email = ($(control).closest("tr").find("td:nth-child(7)").find("input").val());
+                    var postdata = {
+                        id: id,
+                        firstname: firstname,
+                        lastname: lastname,
+                        qualification: qualification,
+                        gender: gender,
+                        work: work
+                    }                    
+                        $.ajax({
+                            url: 'Wnavigation.aspx/Wnavgarionupdate',
+                            method: 'post',
+                            contentType: 'application/json; charset=utf-8',
+                            data: JSON.stringify({ terns: postdata }),
+                            dataType: 'json',
+                            success: function () {
+                                firstname = $(control).closest("tr").find("td:nth-child(2)").find("input").val();
+                                $(control).closest("tr").find("td:nth-child(2)").find("input").remove();
+                                $(control).closest("tr").find("td:nth-child(2)").append("<label>" + firstname + "</label>");
+
+                                lastname = $(control).closest("tr").find("td:nth-child(3)").find("input").val();
+                                $(control).closest("tr").find("td:nth-child(3)").find("input").remove();
+                                $(control).closest("tr").find("td:nth-child(3)").append("<label>" + lastname + "</label>");
+
+                                qualification = $(control).closest("tr").find("td:nth-child(4)").find("input").val();
+                                $(control).closest("tr").find("td:nth-child(4)").find("input").remove();
+                                $(control).closest("tr").find("td:nth-child(4)").append("<label>" + qualification + "</label>");
+
+                                gender = $(control).closest("tr").find("td:nth-child(5)").find("input").val();
+                                $(control).closest("tr").find("td:nth-child(5)").find("input").remove();
+                                $(control).closest("tr").find("td:nth-child(5)").append("<label>" + gender + "</label>");
+
+                                work = $(control).closest("tr").find("td:nth-child(6)").find("input").val();
+                                $(control).closest("tr").find("td:nth-child(6)").find("input").remove();
+                                $(control).closest("tr").find("td:nth-child(6)").append("<label>" + work + "</label>");
+
+
+                                email = $(control).closest("tr").find("td:nth-child(7)").find("input").val();
+                                $(control).closest("tr").find("td:nth-child(7)").find("input").remove();
+                                $(control).closest("tr").find("td:nth-child(7)").append("<label>" + email + "</label>");
+
+                                $(control).val("EDIT");                               
+                                alert("successfully updated recored...!");
+                             },
+                            Error: function (err) {
+                                Error(err);
+                            }
+                        });                   
+                }
+            }
+            function SearchText() {
+                $("#txtemailid").bind("keydown", function (event) {
+                    if (event.keyCode === $.ui.keyCode.TAB &&
+                    $(this).data("autocomplete").menu.active) {
+                        event.preventDefault();
+                    }
+                })
+                function split(val) {
+                    return val.split(/,\s*/);
+                }
+                function extractLast(term) {
+                    return split(term).pop();
+                }
+                $("#txtemailid").autocomplete({
+                    source: function (request, response) {
+                        $.ajax({
+                            type: "POST",
+                            contentType: "application/json; charset=utf-8",
+                            url: "WebService.asmx/autocompletename",
+                            data: "{'term':'" + extractLast(request.term) + "'}",
+                            dataType: "json",
+                            success: function (data) {
+                                response(data.d);
+                            },
+                            error: function (result) {
+                                alert("Error");
+                            }
+                        });
+                    },
+                    focus: function () {
+                        // prevent value inserted on focus
+                        return false;
+                    },
+                    select: function (event, ui) {
+                        var terms = split(this.value);
+                        // remove the current input
+                        terms.pop();
+                        // add the selected item
+                        terms.push(ui.item.value);
+                        // add placeholder to get the comma-and-space at the end
+                        terms.push("");
+                        this.value = terms.join(", ");
+                        return false;
+                    }
+                });
+            }
+            function Editrecords(control) {
+
+                ID = ($(control).closest("tr").find("td:nth-child(1)").find("label").html());
+                Firstname = $(control).closest("tr").find("td:nth-child(2)").find("label").html();
+                lastname = $(control).closest("tr").find("td:nth-child(3)").find("label").html();
+                Qualification = $(control).closest("tr").find("td:nth-child(4)").find("label").html();
+                gender = $(control).closest("tr").find("td:nth-child(5)").find("label").html();
+                work = ($(control).closest("tr").find("td:nth-child(6)").find("label").html());
+                email = ($(control).closest("tr").find("td:nth-child(7)").find("label").html());
+
+                var url = "EditDetails.aspx/Editnewpage?ID=" + ID + "&FirstName=" + Firstname + "&lastname=" + lastname + "&Qualification=" + Qualification + "&gender=" + gender + "&work=" + work + "&email=" + email;
+                window.location.href = url;
+
+            }
+           
+          
+    </script>
+     <style>
+         .modal-header {
+            background-color :orange;
+            color:white;
+         }
+     </style>
+</head>
+<body>
+    <div class="container">
+
+     <%--   <input type="button" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#mymodal" value="Add New" />
+     --%>   <div class="modal" id="mymodal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">This is entry form</h3>
+                        <input type="button" class="btn-close" data-bs-dismiss="modal" />
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="mb-2">
+                                <label class="form-label">ID</label>
+                                <input type="text" id="textid1" class="form-control" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Firstname</label>
+                                <input type="text" id="txtfirstname1" class="form-control" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Lastname</label>
+                                <input type="text" id="txtlastname1" class="form-control" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Qualification</label>
+                                <input type="text" id="txtqualificaion1" class="form-control" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Gender</label>
+                                <input type="text" id="txtgender1" class="form-control" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Work</label>
+                                <input type="text" id="txtwork1" class="form-control" />
+                            </div>
+                            <div class="mb-2">
+                               <input type="text" id="txtInput" placeholder="Search" style="padding: 10px; width: 250px" />
+                                  <div id="divTags" style="position: absolute; z-index: 999; background: rgb(255, 255, 255); border: 1px solid black; height: 100px; width: 270px; overflow: auto; display: none;">
+                                  <table style="border: 1px thick black">
+                                  <tbody id="output" style='cursor: pointer'></tbody>
+                                  </table>
+                                 </div>
+                            </div>
+                            <div class="modal-footer">
+                            <input  class="btn-primary" type="button" id="Button1" value="SAVE" />
+                                <input  class="btn-danger" type="button" id="Button2" value="Update" />
+                                </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+    <h1 class="bg-success text-black text-center">This is form of persons details...</h1>
+        <div class="table-responsive">
+          <div class="">
+    <table class="table table-sm table-bordered text-center">    
+         <tr>
+            <td class="text-success">Id </td>
+            <td><input type="text" id="textid" class="txtclear input-sm" /></td>
+        </tr>
+        <tr>
+            <td class="text-success">Firstname </td>
+            <td><input type="text" id="txtfirstname" class="txtclear input-sm" /></td>
+        </tr>
+        <tr>
+            <td class="text-success">Lastname</td>
+            <td><input type="text" id="txtlastname" class="txtclear input-sm" /></td>
+        </tr>
+        <tr>
+            <td class="text-success">Qualification</td>
+            <td><input type="text" id="txtqualificaion" class="txtclear input-sm"  /></td>
+        </tr>
+        <tr>
+            <td class="text-success">Gender</td>
+            <td><input type="text" id="txtgender" class="txtclear input-sm" /></td>
+        </tr>
+        <tr>
+            <td class="text-success">Work</td>
+            <td><input type="text" id="txtwork" class="txtclear input-sm"/></td>
+        </tr>
+        <tr>
+            <td class="text-success">Emailid</td>
+            <td><input type="text" id="txtemailid" class="txtclear input-sm"/></td>
+        </tr>
+    </table>
+            </div> 
+        <div>
+       <input  class="btn-success" type="button" id="btnsave" value="SAVE" />
+       <input class="btn-success" type="button" id="btnupdate" value="UPDATE" />
+        </div>
+            <input class="text-center text-success" type="text" name="txtSearch"  placeholder="search... "/>
+            <br />
+        <div class="table-responsive">
+        <table class="table table-sm table-bordered text-center text-white bg-dark" id="tbldisplay">
+            <thead class="bg-success" >
+            <tr>
+                <th >Id</th>
+                <th >Firstname</th>
+                <th >lastname</th>
+                <th >Qualification</th>
+                <th >Gender</th>
+                <th >Work</th>
+                <th >Emailid</th>
+                <th>Edit</th>
+                <th>Update</th>
+            </tr>
+                </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+        <div class="container">
+        <div class="table-responsive">
+            <table class="table-bordered bg-dark">
+              <tr>
+                  <td style="text-align:right">
+                      <select class="btn-success" id="drpPagesize">
+                          <option selected="selected">5</option>
+                          <option>10</option>
+                          <option>15</option>
+                          <option>20</option>
+                      </select>
+                      <input class="btn-success" type="button"  value="FirstPage" id="btnfirst"/>
+                      <input class="btn-success" type="button"  value="Pre" id="btnpre"/>
+                      <label class="text-success">Page</label>
+                      <input class="text-success" type="text" id="txtcurrentpage" value="1" style="width:50px;text-align:center" />
+                       <label class="text-success">Of</label> 
+                      <span class="text-success" id="spnTotalPageSize">10</span>
+                      <input class="btn-success" type="button"  value="Next" id="btnnext"/>
+                      <input class="btn-success" type="button"  value="LastPage" id="btnlast"/>
+                  </td>
+              </tr>
+            </table>
+        </div>
+    </div>
+    </div>
+    </div>
+ </body>   
+</html>
+
